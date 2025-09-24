@@ -1439,6 +1439,28 @@ export const App = {
         UIManager.showLoader('Detectando sprites...');
         DOM.autoDetectButton.disabled = true; DOM.autoDetectToolButton.disabled = true;
         setTimeout(async () => {
+            // --- INICIO: LLAMADA AL WORKER DE ANALÍTICAS ---
+            try {
+                // Reemplaza esta URL con la URL de tu Worker
+                const workerUrl = '/api/log'; // Usar una ruta relativa para Cloudflare Pages Functions
+
+                await fetch(workerUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        eventName: 'auto_detect_sprites_clicked',
+                        details: {
+                            fileName: AppState.currentFileName,
+                            timestamp: new Date().toISOString()
+                        }
+                    }),
+                });
+            } catch (error) {
+                console.warn('No se pudo registrar el evento de analíticas:', error);
+            }
+            // --- FIN: LLAMADA AL WORKER DE ANALÍTICAS ---
             try {
                 const tolerance = parseInt(DOM.autoDetectToleranceInput.value, 10);
                 const newFrames = await detectSpritesFromImage(DOM.imageDisplay, { tolerance });
