@@ -1,4 +1,12 @@
-name = "sprite-sheet-1"
+name = "sprite-sheet-suite"
 main = "src/index.js"
-compatibility_date = "2023-09-24" # Usa una fecha reciente
-nodejs_compat = true
+compatibility_date = "2023-10-30"
+
+# Configuración para Workers Sites.
+# Esto le dice a Wrangler que los archivos en el directorio actual ('.')
+# deben ser servidos a través del KV Namespace __STATIC_CONTENT.
+[site]
+bucket = "."
+
+# Excluye directorios que no son parte del sitio web final.
+exclude = ["node_modules", "src", ".git", ".github"]
