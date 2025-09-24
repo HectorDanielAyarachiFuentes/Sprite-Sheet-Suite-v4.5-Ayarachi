@@ -48,7 +48,12 @@ export default {
       }
 
       // Para otros errores (como problemas con KV), devuelve un 500.
-      return new Response(e.message || e.toString(), { status: e.status || 500 });
+      // Se añade una comprobación para asegurarse de que 'e' es un objeto válido.
+      if (e && typeof e === 'object') {
+        return new Response(e.message || e.toString(), { status: e.status || 500 });
+      } else {
+        return new Response('Internal Server Error', { status: 500 });
+      }
     }
   },
 };
