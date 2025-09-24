@@ -10,6 +10,7 @@ import { InteractionController } from './6_interactionController.js';
 import { AnimationManager } from './7_animationManager.js';
 import { ExportManager } from './8_exportManager.js';
 import { SessionManager } from './9_sessionManager.js';
+import { CloudManager } from './10_cloudManager.js';
 import { detectSpritesFromImage, detectBackgroundColor, isBackgroundColor } from './spriteDetection.js';
 import { openTutorial } from './tutorial.js';
 
@@ -153,7 +154,8 @@ export const App = {
         InteractionController.init();
         AnimationManager.init();
         ExportManager.init();
-        SessionManager.init(); 
+        SessionManager.init();
+        CloudManager.init();
     },
 
     updateAll(saveState = false) {
@@ -485,6 +487,7 @@ export const App = {
         AppState.activeClipId = state.activeClipId;
         AppState.subFrameOffsets = state.subFrameOffsets || {};
         AppState.selectedSlice = null; // Reiniciar slice al cargar
+        AppState.cloudProjectId = state.cloudProjectId || null; // Cargar ID de la nube
         HistoryManager.setHistoryState(state);
         DOM.imageDisplay.src = state.imageSrc;
         UIManager.showToast(`Proyecto "${state.fileName}" cargado.`, 'success');
@@ -529,6 +532,7 @@ export const App = {
         AppState.selectedFrameId = null; 
         AppState.selectedSubFrameId = null;
         AppState.subFrameOffsets = {};
+        AppState.cloudProjectId = null; // Limpiar ID de la nube
         AppState.selectedSlice = null;
         if (!isInitial) this.updateAll(true);
     },

@@ -9,6 +9,7 @@ export const AppState = {
     selectedSubFrameId: null,
     subFrameOffsets: {},
     selectedSlice: null, // --- AÑADIDO --- Para recordar la línea (slice) seleccionada.
+    cloudProjectId: null, // --- NUEVO --- ID del proyecto si está guardado en la nube.
     currentFileName: "spritesheet.png",
     isLocked: false,
     activeTool: 'select',

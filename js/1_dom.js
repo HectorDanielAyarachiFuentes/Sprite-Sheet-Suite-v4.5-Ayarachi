@@ -115,6 +115,9 @@ export const DOM = {
     unifyFromEditorBtn: document.getElementById('unify-from-editor-btn'),
     loadingOverlay: document.getElementById('loading-overlay'),
     allControls: document.querySelectorAll('button, input, select'),
+    // --- NUEVO: Cloud Storage ---
+    saveToCloudButton: document.getElementById('save-to-cloud-button'),
+    cloudProjectsList: document.getElementById('cloud-projects-list'),
 };
 
 // Centralizamos también los contextos de los canvas

@@ -269,6 +269,14 @@
                         <div><ul id="project-history-list" class="styled-list"></ul></div>
                     </details>
 
+                    <!-- ===== NUEVO: PANEL DE PROYECTOS EN LA NUBE ===== -->
+                    <details class="panel">
+                        <summary>☁️ Proyectos en la Nube</summary>
+                        <button id="save-to-cloud-button" style="width: 100%; margin-bottom: 10px;">Guardar Proyecto Actual en la Nube</button>
+                        <p class="help-text">Haz clic en un proyecto para cargarlo.</p>
+                        <div><ul id="cloud-projects-list" class="styled-list"></ul></div>
+                    </details>
+
                     <details class="panel" id="export-panel">
                         <summary>Exportar</summary>
                         <div class="export-options">
@@ -509,6 +517,7 @@
     </script>
     <script type="module" src="js/main.js"></script>
     <script type="module" src="js/tutorial.js"></script>
+    <script type="module" src="js/10_cloudManager.js"></script>
 
 </body>
 </html>
