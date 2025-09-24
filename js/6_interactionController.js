@@ -18,6 +18,7 @@ export let InteractionState = {
     resizeHandle: null,
     draggedSlice: null,
     HANDLE_SIZE: 8,
+    isRedrawPending: false, // Para optimizar el dibujado con requestAnimationFrame
     SLICE_HANDLE_WIDTH: 6,
     DRAG_THRESHOLD: 4, // Umbral en píxeles para iniciar un arrastre y evitar "jitter"
 };
@@ -185,6 +186,16 @@ const InteractionController = (() => {
         }
     };
     
+    // --- NUEVO: Función para solicitar un redibujado optimizado ---
+    const requestRedraw = () => {
+        if (!InteractionState.isRedrawPending) {
+            InteractionState.isRedrawPending = true;
+            requestAnimationFrame(() => {
+                CanvasView.drawAll();
+                InteractionState.isRedrawPending = false;
+            });
+        }
+    };
     // El resto de los manejadores (mousemove, mouseup, dblclick) no necesitan cambios significativos.
     // Solo modificamos handleKeyDown.
     const handleMouseMove = (e) => {
@@ -275,7 +286,8 @@ const InteractionController = (() => {
             InteractionState.newRect.h = pos.y - InteractionState.newRect.y;
         }
         
-        CanvasView.drawAll();
+        // --- MODIFICADO: Usar la función de redibujado optimizada ---
+        requestRedraw();
     };
 
     const handleMouseUp = (e) => {

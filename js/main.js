@@ -490,12 +490,28 @@ export const App = {
         UIManager.showToast(`Proyecto "${state.fileName}" cargado.`, 'success');
     },
     
-    handleFile(file) {
+    async handleFile(file) {
         if (!file || !file.type.startsWith('image/')) return;
         AppState.currentFileName = file.name;
-        const reader = new FileReader();
-        reader.onload = (e) => { DOM.imageDisplay.src = e.target.result; this.isReloadingFromStorage = false; };
-        reader.readAsDataURL(file);
+        UIManager.showLoader('Cargando imagen...');
+        this.isReloadingFromStorage = false;
+
+        try {
+            // Usar createImageBitmap para una decodificación más eficiente
+            const imageBitmap = await createImageBitmap(file);
+            
+            // Dibujar el bitmap en un canvas temporal para obtener un data URL
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = imageBitmap.width;
+            tempCanvas.height = imageBitmap.height;
+            tempCanvas.getContext('2d').drawImage(imageBitmap, 0, 0);
+            
+            DOM.imageDisplay.src = tempCanvas.toDataURL();
+        } catch (error) {
+            console.error('Error al cargar el archivo de imagen:', error);
+            UIManager.showToast('No se pudo cargar el archivo de imagen.', 'danger');
+            UIManager.hideLoader();
+        }
     },
 
     setActiveTool(toolName) {
@@ -1439,28 +1455,7 @@ export const App = {
         UIManager.showLoader('Detectando sprites...');
         DOM.autoDetectButton.disabled = true; DOM.autoDetectToolButton.disabled = true;
         setTimeout(async () => {
-            // --- INICIO: LLAMADA AL WORKER DE ANALÍTICAS ---
-            try {
-                // Reemplaza esta URL con la URL de tu Worker
-                const workerUrl = '/api/log'; // Usar una ruta relativa para Cloudflare Pages Functions
-
-                await fetch(workerUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        eventName: 'auto_detect_sprites_clicked',
-                        details: {
-                            fileName: AppState.currentFileName,
-                            timestamp: new Date().toISOString()
-                        }
-                    }),
-                });
-            } catch (error) {
-                console.warn('No se pudo registrar el evento de analíticas:', error);
-            }
-            // --- FIN: LLAMADA AL WORKER DE ANALÍTICAS ---
+            // --- MODIFICADO: La llamada a analíticas ahora no bloquea ---
             try {
                 const tolerance = parseInt(DOM.autoDetectToleranceInput.value, 10);
                 const newFrames = await detectSpritesFromImage(DOM.imageDisplay, { tolerance });
@@ -1473,6 +1468,23 @@ export const App = {
                 console.error("Error en detección de sprites:", error); UIManager.showToast('Ocurrió un error durante la detección.', 'danger');
             } finally {
                 UIManager.hideLoader(); DOM.autoDetectButton.disabled = false; DOM.autoDetectToolButton.disabled = false;
+            }
+
+            // --- La llamada a analíticas se hace aquí, sin bloquear la UI ---
+            try {
+                fetch('/api/log', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        eventName: 'auto_detect_sprites_clicked',
+                        details: {
+                            fileName: AppState.currentFileName,
+                            timestamp: new Date().toISOString()
+                        }
+                    }),
+                });
+            } catch (error) {
+                console.warn('No se pudo registrar el evento de analíticas:', error);
             }
         }, 50);
     }
