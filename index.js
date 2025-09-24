@@ -1,5 +1,6 @@
 // index.js
 import { Clerk } from '@clerk/backend';
+import { getAssetFromKV } from '@cloudflare/kv-asset-handler';
 
 // Esta es la función que maneja las peticiones de la API
 const handleApiRequest = async (request, env) => {
@@ -32,15 +33,41 @@ export default {
       }
 
       // Para todo lo demás, sirve los archivos estáticos de tu sitio
-      // El "try...catch" es una salvaguarda por si env.ASSETS no está disponible
       try {
-          return await env.ASSETS.fetch(request);
-      } catch (e) {
-          // Si el asset no se encuentra (404), sirve el index.html para que la SPA maneje la ruta.
-          if (e.constructor.name === 'NotFoundError') {
-              return env.ASSETS.fetch(new Request(new URL('/index.html', request.url), request));
+        // Usa el manejador de assets de KV para servir los archivos estáticos
+        // __STATIC_CONTENT es el binding por defecto que Wrangler crea para tu KV namespace de assets.
+        return await getAssetFromKV(
+          {
+            request,
+            waitUntil: ctx.waitUntil.bind(ctx),
+          },
+          {
+            ASSET_NAMESPACE: env.__STATIC_CONTENT,
+            ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
           }
-          return new Response(e.message || e.toString(), { status: 500 });
+        );
+      } catch (e) {
+        // Si el asset no se encuentra, podría ser una ruta de la SPA, así que servimos index.html
+        // Esto permite que el enrutamiento del lado del cliente funcione.
+        if (e.status === 404) {
+            try {
+                let notFoundResponse = await getAssetFromKV(
+                    {
+                        request,
+                        waitUntil: ctx.waitUntil.bind(ctx),
+                    },
+                    {
+                        ASSET_NAMESPACE: env.__STATIC_CONTENT,
+                        ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
+                        mapRequestToAsset: (req) => new Request(`${new URL(req.url).origin}/index.html`, req),
+                    }
+                );
+
+                return new Response(notFoundResponse.body, { ...notFoundResponse, status: 200 });
+            } catch (e) {}
+        }
+
+        return new Response(e.message || e.toString(), { status: 500 });
       }
   },
 };
