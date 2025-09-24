@@ -1,0 +1,9 @@
+# wrangler.toml
+name = "sprite-sheet-suite"
+main = "index.js"
+compatibility_date = "2025-09-24"
+
+# Esta línea es la magia.
+# Le dice a Wrangler que incluya TODOS los archivos de tu proyecto (HTML, CSS, etc.).
+[site]
+bucket = "./"
