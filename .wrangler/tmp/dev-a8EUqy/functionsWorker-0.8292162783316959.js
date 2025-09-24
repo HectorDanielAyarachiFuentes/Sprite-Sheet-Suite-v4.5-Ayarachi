@@ -26,6 +26,74 @@ async function onRequestPost(context) {
 }
 __name(onRequestPost, "onRequestPost");
 __name2(onRequestPost, "onRequestPost");
+var getUserId = /* @__PURE__ */ __name2((request) => {
+  return request.headers.get("x-user-id");
+}, "getUserId");
+async function onRequestGet(context) {
+  const { request, env } = context;
+  const userId = getUserId(request);
+  if (!userId) {
+    return new Response(JSON.stringify({ success: false, error: "User ID no proporcionado" }), { status: 400 });
+  }
+  try {
+    const projectsList = await env.SPRITE_PROJECTS.get(`projects:${userId}`, "json") || [];
+    return new Response(JSON.stringify({ success: true, data: projectsList }), {
+      headers: { "Content-Type": "application/json" }
+    });
+  } catch (e) {
+    console.error("Error al listar proyectos:", e);
+    return new Response(JSON.stringify({ success: false, error: "Error del servidor al listar proyectos" }), { status: 500 });
+  }
+}
+__name(onRequestGet, "onRequestGet");
+__name2(onRequestGet, "onRequestGet");
+async function onRequestPost2(context) {
+  const { request, env } = context;
+  const userId = getUserId(request);
+  if (!userId) {
+    return new Response(JSON.stringify({ success: false, error: "User ID no proporcionado" }), { status: 400 });
+  }
+  try {
+    const projectData = await request.json();
+    if (!projectData.id || !projectData.name || !projectData.state) {
+      return new Response(JSON.stringify({ success: false, error: "Datos del proyecto incompletos" }), { status: 400 });
+    }
+    const projectId = projectData.id;
+    const projectKey = `project:${projectId}`;
+    const userProjectsKey = `projects:${userId}`;
+    let projectsList = await env.SPRITE_PROJECTS.get(userProjectsKey, "json") || [];
+    const metadata = {
+      id: projectId,
+      name: projectData.name,
+      updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      thumb: projectData.thumb
+      // Incluir miniatura
+    };
+    const existingIndex = projectsList.findIndex((p) => p.id === projectId);
+    if (existingIndex > -1) {
+      projectsList[existingIndex] = metadata;
+    } else {
+      projectsList.unshift(metadata);
+    }
+    await Promise.all([
+      // Guardar el estado completo del proyecto
+      env.SPRITE_PROJECTS.put(projectKey, JSON.stringify(projectData.state)),
+      // Guardar la lista actualizada de metadatos del usuario
+      env.SPRITE_PROJECTS.put(userProjectsKey, JSON.stringify(projectsList))
+    ]);
+    return new Response(JSON.stringify({ success: true, data: metadata }), {
+      headers: { "Content-Type": "application/json" }
+    });
+  } catch (e) {
+    console.error("Error al guardar el proyecto:", e);
+    if (e instanceof TypeError) {
+      return new Response(JSON.stringify({ success: false, error: "Cuerpo de la solicitud inv\xE1lido o no es JSON" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+    return new Response(JSON.stringify({ success: false, error: "Error del servidor al guardar el proyecto" }), { status: 500 });
+  }
+}
+__name(onRequestPost2, "onRequestPost2");
+__name2(onRequestPost2, "onRequestPost");
 var routes = [
   {
     routePath: "/api/log",
@@ -33,6 +101,20 @@ var routes = [
     method: "POST",
     middlewares: [],
     modules: [onRequestPost]
+  },
+  {
+    routePath: "/api/projects",
+    mountPath: "/api/projects",
+    method: "GET",
+    middlewares: [],
+    modules: [onRequestGet]
+  },
+  {
+    routePath: "/api/projects",
+    mountPath: "/api/projects",
+    method: "POST",
+    middlewares: [],
+    modules: [onRequestPost2]
   }
 ];
 function lexer(str) {
