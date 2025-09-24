@@ -1,44 +1,54 @@
-// src/index.js
-import { Clerk } from '@clerk/backend';
+import { getAssetFromKV, mapRequestToAsset, serveSinglePageApp } from '@cloudflare/kv-asset-handler';
 
-// Esta función maneja las peticiones a tu API protegida
-const handleApiRequest = async (request, env) => {
-    const clerk = Clerk({ secretKey: env.CLERK_SECRET_KEY });
-    const authHeader = request.headers.get('Authorization');
-
-    if (!authHeader) {
-        return new Response('Authorization header is missing', { status: 401 });
-    }
-
-    try {
-        const token = authHeader.replace('Bearer ', '');
-        const claims = await clerk.verifyToken(token);
-        return new Response(JSON.stringify({ success: true, userId: claims.sub }), {
-            headers: { 'Content-Type': 'application/json' },
-        });
-    } catch (error) {
-        return new Response('Invalid token', { status: 401 });
-    }
-};
-
-// Este es el manejador principal que se exporta
 export default {
-    async fetch(request, env, ctx) {
-        const url = new URL(request.url);
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    try {
+      // La opción mapRequestToAsset se encarga de reescribir las rutas de la SPA.
+      // Si la ruta no parece un archivo estático (no tiene extensión), la redirige a index.html.
+      const options = {
+        ASSET_NAMESPACE: env.__STATIC_CONTENT,
+        ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
+        // Usar serveSinglePageApp es la forma más idiomática para una SPA.
+        // Esto reescribe la solicitud a /index.html para rutas que no son archivos.
+        mapRequestToAsset: serveSinglePageApp,
+      };
 
-        // Si la ruta empieza con /api/, usa la lógica de la API
-        if (url.pathname.startsWith('/api/')) {
-            return handleApiRequest(request, env, ctx);
-        }
-
-        // Para todo lo demás, sirve los archivos estáticos usando el fetcher de assets de Pages.
+      // Hacemos la llamada a getAssetFromKV una sola vez con las opciones correctas.
+      return await getAssetFromKV(
+        {
+          request,
+          waitUntil: ctx.waitUntil.bind(ctx),
+        },
+        options
+      );
+    } catch (e) {
+      // Si getAssetFromKV falla incluso después de intentar buscar index.html,
+      // puede que el archivo realmente no exista.
+      // Se intenta obtener el archivo 404.html si existe.
+      if (e.status === 404) {
         try {
-            return await env.ASSETS.fetch(request);
+          let notFoundResponse = await getAssetFromKV(
+            {
+              request,
+              waitUntil: ctx.waitUntil.bind(ctx),
+            },
+            {
+              ASSET_NAMESPACE: env.__STATIC_CONTENT,
+              ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
+              // Buscamos una página 404 personalizada
+              mapRequestToAsset: (req) => new Request(`${new URL(req.url).origin}/404.html`, req),
+            }
+          );
+          
+          return new Response(notFoundResponse.body, { ...notFoundResponse, status: 404 });
         } catch (e) {
-            // Si el asset no se encuentra, podría ser una ruta de SPA, así que servimos el index.html.
-            // Esto permite que el enrutamiento del lado del cliente se haga cargo.
-            const notFoundRequest = new Request(new URL('/index.html', request.url));
-            return await env.ASSETS.fetch(notFoundRequest);
+            return new Response('Not Found', { status: 404 });
         }
-    },
+      }
+
+      // Para otros errores (como problemas con KV), devuelve un 500.
+      return new Response(e.message || e.toString(), { status: e.status || 500 });
+    }
+  },
 };
