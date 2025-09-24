@@ -152,7 +152,7 @@ const InteractionController = (() => {
                     InteractionState.draggedSlice = sliceAtClick;
                 } else if (frameAtClick) {
                     // Si no se hizo clic en una línea o handle, nos preparamos para arrastrar el frame.
-                    if (AppState.selectedFrameId !== frameAtClick.id) HistoryManager.resetLocal();
+                    if (AppState.selectedFrameId !== frameAtClick.id) HistoryManager.reset();
                     AppState.selectedFrameId = frameAtClick.id;
                     AppState.selectedSubFrameId = subFrameAtClick ? subFrameAtClick.id : null;
                     AppState.selectedSlice = null; // Deseleccionamos cualquier línea anterior

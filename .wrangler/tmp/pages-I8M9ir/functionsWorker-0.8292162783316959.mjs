@@ -4,6 +4,9 @@ var __name = (target, value) => __defProp(target, "name", { value, configurable:
 // api/log.js
 async function onRequestPost(context) {
   try {
+    if (!context.request.body) {
+      return new Response(JSON.stringify({ success: false, error: "No se proporcion\xF3 cuerpo en la solicitud" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
     const eventData = await context.request.json();
     console.log(`[Pages Function] Evento recibido: ${eventData.eventName}`, JSON.stringify(eventData.details));
     return new Response(JSON.stringify({ success: true, message: "Evento registrado" }), {
@@ -11,8 +14,9 @@ async function onRequestPost(context) {
       status: 200
     });
   } catch (e) {
-    console.error("[Pages Function] Error al procesar el evento:", e.message);
-    return new Response(JSON.stringify({ success: false, error: "Cuerpo de la solicitud inv\xE1lido" }), {
+    console.error("[Pages Function] Error al procesar el evento:", e);
+    const errorMessage = e instanceof SyntaxError ? "Cuerpo de la solicitud inv\xE1lido o no es JSON." : "Error interno del servidor.";
+    return new Response(JSON.stringify({ success: false, error: errorMessage, detail: e.message }), {
       headers: { "Content-Type": "application/json" },
       status: 400
     });
@@ -518,7 +522,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// ../.wrangler/tmp/bundle-X7OZf4/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-UVzpCw/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -550,7 +554,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// ../.wrangler/tmp/bundle-X7OZf4/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-UVzpCw/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

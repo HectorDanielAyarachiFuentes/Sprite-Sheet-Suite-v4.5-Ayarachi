@@ -6,6 +6,9 @@ var __defProp2 = Object.defineProperty;
 var __name2 = /* @__PURE__ */ __name((target, value) => __defProp2(target, "name", { value, configurable: true }), "__name");
 async function onRequestPost(context) {
   try {
+    if (!context.request.body) {
+      return new Response(JSON.stringify({ success: false, error: "No se proporcion\xF3 cuerpo en la solicitud" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
     const eventData = await context.request.json();
     console.log(`[Pages Function] Evento recibido: ${eventData.eventName}`, JSON.stringify(eventData.details));
     return new Response(JSON.stringify({ success: true, message: "Evento registrado" }), {
@@ -13,8 +16,9 @@ async function onRequestPost(context) {
       status: 200
     });
   } catch (e) {
-    console.error("[Pages Function] Error al procesar el evento:", e.message);
-    return new Response(JSON.stringify({ success: false, error: "Cuerpo de la solicitud inv\xE1lido" }), {
+    console.error("[Pages Function] Error al procesar el evento:", e);
+    const errorMessage = e instanceof SyntaxError ? "Cuerpo de la solicitud inv\xE1lido o no es JSON." : "Error interno del servidor.";
+    return new Response(JSON.stringify({ success: false, error: errorMessage, detail: e.message }), {
       headers: { "Content-Type": "application/json" },
       status: 400
     });
