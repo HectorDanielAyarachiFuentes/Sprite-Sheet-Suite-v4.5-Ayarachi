@@ -1,11 +1,10 @@
 // index.js
 import { Clerk } from '@clerk/backend';
-// ¡OJO! Ya no importamos 'assetHandler'.
 
 export default {
   async fetch(request, env, ctx) {
-    // It's a best practice to wrap the main fetch handler in a try...catch block
-    // to handle any unexpected errors and avoid the generic "Worker threw exception" error.
+    // Es una buena práctica envolver el manejador principal en un try...catch
+    // para manejar errores inesperados y evitar el error genérico "Worker threw exception".
     try {
       const url = new URL(request.url);
 
@@ -14,30 +13,31 @@ export default {
         return await handleApiRequest(request, env);
       }
 
-      // This checks if the ASSETS binding for Cloudflare Pages is available.
-      // If not, it means the worker is likely not deployed as a Pages Function.
+      // Comprueba si el binding ASSETS para Cloudflare Pages está disponible.
+      // Si no lo está, significa que el worker probablemente no está desplegado como una Pages Function.
       if (!env || !env.ASSETS) {
         return new Response('Static asset serving is not configured.', { status: 500 });
       }
 
-      // Para todo lo demás, servimos el sitio estático desde el bucket de KV.
-      // 'ASSETS' es el binding que Wrangler crea automáticamente para el bucket definido en [site].
+      // Para todo lo demás, intentamos servir el archivo estático correspondiente a la petición.
+      // 'ASSETS' es el binding que Cloudflare Pages crea automáticamente para servir los archivos de tu proyecto.
       return await env.ASSETS.fetch(request);
     } catch (e) {
-      // This catch block is for when an asset is not found (e.g., a 404).
-      // It's a common pattern for Single Page Applications (SPAs) to serve the index.html
-      // for any path that doesn't match a static file, letting the frontend router take over.
+      // Este bloque catch se activa cuando un asset no se encuentra (un error 404).
+      // Es un patrón común para las Single Page Applications (SPAs) servir el index.html
+      // para cualquier ruta que no coincida con un archivo estático, permitiendo que el router del frontend tome el control.
       if (e.message.includes('Not Found')) {
         const url = new URL(request.url);
-        // Ensure env and env.ASSETS exist before fetching the fallback.
+        // Asegurarse de que env y env.ASSETS existan antes de buscar el fallback.
         if (!env || !env.ASSETS) {
           return new Response('Static asset serving is not configured for fallback.', { status: 500 });
         }
+        // Si el archivo no se encontró, servimos el index.html para que la SPA maneje la ruta.
         const notFoundResponse = await env.ASSETS.fetch(new Request(url.origin + '/index.html', request));
         return new Response(notFoundResponse.body, { ...notFoundResponse, status: 200 });
       }
       
-      // For other errors, return a 500.
+      // Para otros errores, devolvemos un error 500.
       console.error("Worker fetch error:", e);
       return new Response('An internal error occurred', { status: 500 });
     }
@@ -46,7 +46,7 @@ export default {
 
 async function handleApiRequest(request, env) {
   try {
-    // Validate that the secret key is present before initializing Clerk.
+    // Validar que la clave secreta esté presente antes de inicializar Clerk.
     if (!env.CLERK_SECRET_KEY) {
       throw new Error('CLERK_SECRET_KEY environment variable not set.');
     }
@@ -73,8 +73,8 @@ async function handleApiRequest(request, env) {
 
   } catch (error) {
     console.error("API Request Error:", error);
-    // Provide a more generic error message for security.
-    // The specific error is logged for debugging.
+    // Proporcionar un mensaje de error genérico por seguridad.
+    // El error específico se registra en la consola para depuración.
     return new Response('Authentication error', { status: 401 });
   }
 }
