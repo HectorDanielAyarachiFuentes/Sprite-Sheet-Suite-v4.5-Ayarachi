@@ -66,12 +66,14 @@ export default {
                 );
 
                 return new Response(notFoundResponse.body, { ...notFoundResponse, status: 200 });
-            } catch (e) {
-                // If index.html is not found, return a 500 error.
+            } catch (innerError) {
+                // If index.html itself is not found, we return a proper 404.
+                // This prevents the worker from crashing with a 500 error.
+                return new Response('Not Found', { status: 404 });
             }
         }
 
-        return new Response(e.message || e.toString(), { status: 500 });
+        return new Response(e.message || e.toString(), { status: e.status || 500 });
       }
   },
 };
