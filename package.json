@@ -1,14 +1,15 @@
- {
+{
    "name": "sprite-sheet-suite-worker",
    "version": "1.0.0",
    "private": true,
    "scripts": {
-     "deploy": "wrangler deploy"
+      "deploy": "wrangler deploy"
    },
    "dependencies": {
-     "@clerk/backend": "^1.2.3"
+      "@clerk/backend": "^1.2.3",
+      "@cloudflare/kv-asset-handler": "^0.4.0"
    },
    "devDependencies": {
-     "wrangler": "^3.0.0"
+      "wrangler": "^3.0.0"
    }
- }
+}

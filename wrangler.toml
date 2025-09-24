@@ -1,10 +1,7 @@
-# wrangler.toml
 name = "sprite-sheet-1"
-main = "index.js"
-compatibility_date = "2024-03-20"
-compatibility_flags = [ "nodejs_compat" ]
+main = "src/index.js"
+compatibility_date = "2025-09-24" # Usa una fecha reciente
+nodejs_compat = true
 
-# Indica a Wrangler que el directorio actual contiene los archivos estáticos
-# que se subirán a un bucket de KV para ser servidos.
 [site]
 bucket = "./"
