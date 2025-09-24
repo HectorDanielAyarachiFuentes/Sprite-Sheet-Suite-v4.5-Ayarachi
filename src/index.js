@@ -36,7 +36,9 @@ export default {
             return await env.ASSETS.fetch(request);
         } catch (e) {
             // Si el asset no se encuentra, podría ser una ruta de SPA, así que servimos el index.html.
-            return await env.ASSETS.fetch(new Request(new URL('/index.html', request.url)));
+            // Esto permite que el enrutamiento del lado del cliente se haga cargo.
+            const notFoundRequest = new Request(new URL('/index.html', request.url));
+            return await env.ASSETS.fetch(notFoundRequest);
         }
     },
 };
