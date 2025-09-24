@@ -1,6 +1,5 @@
 // src/index.js
 import { Clerk } from '@clerk/backend';
-import { getAssetFromKV } from '@cloudflare/kv-asset-handler';
 
 // Esta función maneja las peticiones a tu API protegida
 const handleApiRequest = async (request, env) => {
@@ -32,41 +31,12 @@ export default {
             return handleApiRequest(request, env);
         }
 
-        // Para todo lo demás, sirve los archivos estáticos de tu sitio
-        // Esto es lo que faltaba: usar el getAssetFromKV
+        // Para todo lo demás, sirve los archivos estáticos usando el fetcher de assets de Pages.
         try {
-            return await getAssetFromKV(
-                {
-                    request,
-                    waitUntil: ctx.waitUntil.bind(ctx),
-                },
-                {
-                    ASSET_NAMESPACE: env.__STATIC_CONTENT,
-                    ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
-                }
-            );
+            return await env.ASSETS.fetch(request);
         } catch (e) {
-            // Si no encuentra el archivo, puede ser una ruta de tu Single Page App,
-            // así que sirve el index.html
-            if (e.status === 404) {
-                 try {
-                    let notFoundResponse = await getAssetFromKV(
-                        {
-                            request,
-                            waitUntil: ctx.waitUntil.bind(ctx)
-                        },
-                        {
-                            ASSET_NAMESPACE: env.__STATIC_CONTENT,
-                            ASSET_MANIFEST: env.__STATIC_CONTENT_MANIFEST,
-                            mapRequestToAsset: (req) => new Request(`${new URL(req.url).origin}/index.html`, req)
-                        }
-                    );
-                    return new Response(notFoundResponse.body, { ...notFoundResponse, status: 200 });
-                } catch (e2) {
-                    return new Response("Not found", { status: 404 });
-                }
-            }
-            return new Response('An unexpected error occurred', { status: 500 });
+            // Si el asset no se encuentra, podría ser una ruta de SPA, así que servimos el index.html.
+            return await env.ASSETS.fetch(new Request(new URL('/index.html', request.url)));
         }
     },
 };

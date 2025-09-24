@@ -1,7 +1,4 @@
 name = "sprite-sheet-1"
 main = "src/index.js"
-compatibility_date = "2025-09-24" # Usa una fecha reciente
+compatibility_date = "2023-09-24" # Usa una fecha reciente
 nodejs_compat = true
-
-[site]
-bucket = "./"
