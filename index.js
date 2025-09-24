@@ -16,7 +16,7 @@ export default {
 
       // This checks if the ASSETS binding for Cloudflare Pages is available.
       // If not, it means the worker is likely not deployed as a Pages Function.
-      if (!env.ASSETS) {
+      if (!env || !env.ASSETS) {
         return new Response('Static asset serving is not configured.', { status: 500 });
       }
 
@@ -29,7 +29,11 @@ export default {
       // for any path that doesn't match a static file, letting the frontend router take over.
       if (e.message.includes('Not Found')) {
         const url = new URL(request.url);
-        let notFoundResponse = await env.ASSETS.fetch(new Request(url.origin + '/index.html', request));
+        // Ensure env and env.ASSETS exist before fetching the fallback.
+        if (!env || !env.ASSETS) {
+          return new Response('Static asset serving is not configured for fallback.', { status: 500 });
+        }
+        const notFoundResponse = await env.ASSETS.fetch(new Request(url.origin + '/index.html', request));
         return new Response(notFoundResponse.body, { ...notFoundResponse, status: 200 });
       }
       
