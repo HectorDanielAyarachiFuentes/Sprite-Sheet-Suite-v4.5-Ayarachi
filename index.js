@@ -1,18 +1,26 @@
 // index.js
 import { Clerk } from '@clerk/backend';
-import { assetHandler } from '__STATIC_CONTENT_ASSET_HANDLER'; // Importa el manejador de assets
+// ¡OJO! Ya no importamos 'assetHandler'.
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    // Si la petición es para la API, la protegemos con Clerk
+    // Si la petición es para la API, la protegemos con Clerk.
     if (url.pathname.startsWith('/api/')) {
       return await handleApiRequest(request, env);
     }
 
-    // Para todo lo demás, usa el manejador de assets para servir tu sitio web
-    return assetHandler(request, env);
+    // Para todo lo demás, servimos el sitio estático desde el bucket de KV.
+    // 'ASSETS' es el binding que Wrangler crea automáticamente para el bucket definido en [site].
+    try {
+      return await env.ASSETS.fetch(request);
+    } catch (e) {
+      // Si el asset no se encuentra, puede que sea una ruta de la app (ej. /login)
+      // En ese caso, servimos el index.html para que el router del frontend se encargue.
+      let notFoundResponse = await env.ASSETS.fetch(new Request(url.origin + '/index.html', request));
+      return new Response(notFoundResponse.body, { ...notFoundResponse, status: 200 });
+    }
   },
 };
 
