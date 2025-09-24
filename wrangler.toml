@@ -1,12 +1,12 @@
 # wrangler.toml
-name = "sprite-sheet-suite"
+name = "sprite-sheet-1"
 main = "index.js"
 compatibility_date = "2025-09-24"
 
-# Esta línea es la magia.
-# Le dice a Wrangler que incluya TODOS los archivos de tu proyecto (HTML, CSS, etc.).
-[site]
-bucket = "./"
+# NUEVA SECCIÓN
+[build]
+command = "npm install"
+watch_dir = "./" # Opcional: le dice a wrangler que observe cambios en todo el directorio
 
 # Añade esta sección para vincular el secreto
 [[vars]]

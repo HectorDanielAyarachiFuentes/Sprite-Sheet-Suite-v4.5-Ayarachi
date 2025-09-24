@@ -1,17 +1,18 @@
 // index.js
 import { Clerk } from '@clerk/backend';
+import { assetHandler } from '__STATIC_CONTENT_ASSET_HANDLER'; // Importa el manejador de assets
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    // Si la petición es para la API, la protegemos
+    // Si la petición es para la API, la protegemos con Clerk
     if (url.pathname.startsWith('/api/')) {
       return await handleApiRequest(request, env);
     }
 
-    // Si no, es para el sitio web, así que servimos los archivos estáticos
-    return env.ASSETS.fetch(request);
+    // Para todo lo demás, usa el manejador de assets para servir tu sitio web
+    return assetHandler(request, env);
   },
 };
 
