@@ -5,8 +5,9 @@ compatibility_date = "2025-09-24"
 
 # NUEVA SECCIÓN
 [build]
-command = "npm install"
-watch_dir = "./" # Opcional: le dice a wrangler que observe cambios en todo el directorio
+command = "npm install" # Primero instala las dependencias
+entry = "index.js"      # Especifica el punto de entrada
+upload.format = "modules" # Le dice a Wrangler que empaquete el código como un módulo ES
 
 # Añade esta sección para vincular el secreto
 [[vars]]
