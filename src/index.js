@@ -28,7 +28,7 @@ export default {
 
         // Si la ruta empieza con /api/, usa la lógica de la API
         if (url.pathname.startsWith('/api/')) {
-            return handleApiRequest(request, env);
+            return handleApiRequest(request, env, ctx);
         }
 
         // Para todo lo demás, sirve los archivos estáticos usando el fetcher de assets de Pages.
