@@ -152,6 +152,7 @@ export const App = {
         UIManager.setControlsEnabled(false);
         InteractionController.init();
         AnimationManager.init();
+        this.initClerk(); // Inicializar Clerk
         ExportManager.init();
         SessionManager.init(); 
     },
@@ -163,6 +164,29 @@ export const App = {
         CanvasView.drawAll();
         UIManager.updateAll();
         AnimationManager.reset();
+    },
+
+    // --- NUEVO: Inicialización de Clerk ---
+    initClerk() {
+        window.addEventListener('load', async function () {
+            const Clerk = window.Clerk;
+            const userButton = document.getElementById('user-button');
+            const signIn = document.getElementById('sign-in');
+          
+            try {
+              // Inicializa Clerk con tu clave pública
+              await Clerk.load({
+                  publishableKey: CLERK_PUBLISHABLE_KEY
+              });
+          
+              // Monta los componentes de UI de Clerk
+              Clerk.mountUserButton(userButton);
+              Clerk.mountSignIn(signIn, {
+                  appearance: { baseTheme: "dark" }
+              });
+          
+            } catch (err) { console.error('Clerk Error:', err); }
+        });
     },
 
     setupEventListeners() {
@@ -1453,7 +1477,38 @@ export const App = {
                 UIManager.hideLoader(); DOM.autoDetectButton.disabled = false; DOM.autoDetectToolButton.disabled = false;
             }
         }, 50);
-    }
+    },
+
+    // --- NUEVO: Función de ejemplo para guardar en una API protegida ---
+    async saveProject() {
+        const Clerk = window.Clerk;
+        
+        // Obtiene el "pase" (token) del usuario que ha iniciado sesión
+        const token = await Clerk.session.getToken();
+      
+        if (!token) {
+          UIManager.showToast("Por favor, inicia sesión para guardar tu proyecto.", "warning");
+          return;
+        }
+      
+        // Envía la petición a tu backend, incluyendo el token
+        const response = await fetch('/api/save', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          // body: JSON.stringify({ projectData: "..." }) // Aquí irían los datos de tu proyecto
+        });
+      
+        const result = await response.json();
+      
+        if (result.success) {
+            UIManager.showToast(`Proyecto guardado para el usuario: ${result.userId}`, 'success');
+        } else {
+            UIManager.showToast("Hubo un error al guardar.", 'danger');
+        }
+      }
 };
 
 document.addEventListener('DOMContentLoaded', () => App.init());

@@ -23,6 +23,16 @@
 
     <!-- Tema oscuro por defecto -->
     <meta name="color-scheme" content="dark">
+
+    <!-- ===== PASO 2: INTEGRACIÓN DE CLERK (FRONTEND) ===== -->
+    <script>
+      // Carga la clave pública desde una variable global de JavaScript
+      // ¡Recuerda reemplazar esto con tu clave real de Clerk!
+      const CLERK_PUBLISHABLE_KEY = "pk_test_Y3VkZGx5LWZlcnJldC0xNS5jbGVyay5hY2NvdW50cy5kZXYk";
+    </script>
+    <script crossorigin="anonymous" src="https://cdn.clerk.dev/clerk.browser.js" type="text/javascript" async></script>
+    <!-- ===== FIN DE LA INTEGRACIÓN DE CLERK ===== -->
+
 </head>
 <body>
 
@@ -61,6 +71,11 @@
                     <span id="zoom-display" aria-live="polite">100%</span>
                     <button id="zoom-in-button" aria-label="Acercar (Ctrl + +)">+</button>
                     <button id="zoom-fit-button" aria-label="Ajustar a pantalla">Fit</button>
+                </div>
+                <!-- Contenedores para los botones de Clerk -->
+                <div class="auth-controls">
+                    <div id="user-button"></div>
+                    <div id="sign-in"></div>
                 </div>
                 <div class="snap-controls" role="group" aria-label="Controles de ajuste a la cuadrícula">
                     <input type="checkbox" id="snap-to-grid-checkbox" title="Ajustar a la cuadrícula (G)">
