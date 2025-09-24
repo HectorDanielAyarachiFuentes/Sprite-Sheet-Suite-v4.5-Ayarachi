@@ -24,8 +24,8 @@ __name(onRequestPost, "onRequestPost");
 __name2(onRequestPost, "onRequestPost");
 var routes = [
   {
-    routePath: "/api/log",
-    mountPath: "/api",
+    routePath: "/log",
+    mountPath: "/",
     method: "POST",
     middlewares: [],
     modules: [onRequestPost]

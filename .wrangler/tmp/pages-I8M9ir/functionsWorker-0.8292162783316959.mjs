@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// api/log.js
+// log.js
 async function onRequestPost(context) {
   try {
     const eventData = await context.request.json();
@@ -23,8 +23,8 @@ __name(onRequestPost, "onRequestPost");
 // ../.wrangler/tmp/pages-I8M9ir/functionsRoutes-0.3232699374606931.mjs
 var routes = [
   {
-    routePath: "/api/log",
-    mountPath: "/api",
+    routePath: "/log",
+    mountPath: "/",
     method: "POST",
     middlewares: [],
     modules: [onRequestPost]
@@ -518,7 +518,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// ../.wrangler/tmp/bundle-s4alfP/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-DPLizC/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -550,7 +550,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// ../.wrangler/tmp/bundle-s4alfP/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-DPLizC/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
