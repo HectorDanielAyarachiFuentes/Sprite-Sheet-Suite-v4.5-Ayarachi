@@ -1,11 +1,11 @@
-import { onRequestPost as __log_js_onRequestPost } from "C:\\Users\\Ramoncito\\Documents\\GitHub\\Sprite-Sheet-Suite-v4.5-Ayarachi\\functions\\log.js"
+import { onRequestPost as __api_log_js_onRequestPost } from "C:\\Users\\Ramoncito\\Documents\\GitHub\\Sprite-Sheet-Suite-v4.5-Ayarachi\\functions\\api\\log.js"
 
 export const routes = [
     {
-      routePath: "/log",
-      mountPath: "/",
+      routePath: "/api/log",
+      mountPath: "/api",
       method: "POST",
       middlewares: [],
-      modules: [__log_js_onRequestPost],
+      modules: [__api_log_js_onRequestPost],
     },
   ]

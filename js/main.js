@@ -500,20 +500,28 @@ export const App = {
         this.isReloadingFromStorage = false;
 
         try {
-            // Usar createImageBitmap para una decodificación más eficiente
-            const imageBitmap = await createImageBitmap(file);
-            
-            // Dibujar el bitmap en un canvas temporal para obtener un data URL
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = imageBitmap.width;
-            tempCanvas.height = imageBitmap.height;
-            tempCanvas.getContext('2d').drawImage(imageBitmap, 0, 0);
-            
-            DOM.imageDisplay.src = tempCanvas.toDataURL();
+            // --- MODIFICADO: Carga de imagen más robusta con fallback ---
+            // Intenta usar el método moderno y eficiente primero.
+            if (window.createImageBitmap) {
+                const imageBitmap = await createImageBitmap(file);
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = imageBitmap.width;
+                tempCanvas.height = imageBitmap.height;
+                tempCanvas.getContext('2d').drawImage(imageBitmap, 0, 0);
+                DOM.imageDisplay.src = tempCanvas.toDataURL();
+            } else {
+                // Fallback al método tradicional si createImageBitmap no está disponible o falla.
+                const reader = new FileReader();
+                reader.onload = (e) => { DOM.imageDisplay.src = e.target.result; };
+                reader.readAsDataURL(file);
+            }
         } catch (error) {
             console.error('Error al cargar el archivo de imagen:', error);
-            UIManager.showToast('No se pudo cargar el archivo de imagen.', 'danger');
-            UIManager.hideLoader();
+            UIManager.showToast('No se pudo decodificar la imagen. Intentando método alternativo...', 'warning');
+            // Si el método moderno falla, intenta el tradicional como último recurso.
+            const reader = new FileReader();
+            reader.onload = (e) => { DOM.imageDisplay.src = e.target.result; };
+            reader.readAsDataURL(file);
         }
     },
 
